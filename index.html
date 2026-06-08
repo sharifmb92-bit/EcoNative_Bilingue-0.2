@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Eco Nativo Pro</title>
+    <!-- Vínculo PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e1e1e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <style>
+        :root {
+            --bg-dark: #1e1e1e;
+            --bg-light: #f0f2f5;
+            --accent: #4285f4;
+            --conductor: #2d2d2d;
+            --card: #ffffff;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body { background-color: var(--bg-light); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+
+        /* ANIMACIÓN DE ENTRADA (SPLASH) */
+        #splash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark); color: white;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; transition: all 0.7s ease;
+        }
+        #splash.hidden { opacity: 0; visibility: hidden; transform: translateY(-100%); }
+        .logo-anim { font-size: 70px; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        /* CABECERA Y SELECTOR */
+        header { 
+            width: 100%; background: white; padding: 15px; 
+            text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .lang-selector { display: flex; justify-content: center; gap: 15px; margin-top: 10px; }
+        .lang-btn {
+            font-size: 30px; cursor: pointer; border: 3px solid transparent;
+            background: white; border-radius: 50%; width: 55px; height: 55px;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .lang-btn.active { border-color: var(--accent); transform: scale(1.1); box-shadow: 0 0 15px rgba(66, 133, 244, 0.3); }
+
+        /* CONTENEDOR PRINCIPAL */
+        .main-container { width: 100%; max-width: 450px; padding: 15px; }
+
+        .app-card {
+            background: var(--conductor); color: white; border-radius: 20px;
+            padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            margin-bottom: 15px;
+        }
+
+        #transcript { font-size: 17px; min-height: 40px; margin-bottom: 15px; color: #bbb; line-height: 1.4; font-style: italic; }
+
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .btn {
+            border: none; padding: 15px; border-radius: 12px;
+            font-weight: 800; cursor: pointer; color: white; 
+            display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px;
+        }
+        .btn-blue { background: linear-gradient(135deg, #4285f4, #1a73e8); }
+        .btn-gray { background: #4a4a4a; }
+        .recording { background: #ea4335 !important; animation: pulse 1s infinite; }
+
+        /* MODO ESCRITURA */
+        .input-manual {
+            display: flex; gap: 8px; background: rgba(255,255,255,0.1);
+            padding: 8px; border-radius: 12px;
+        }
+        .input-manual input {
+            flex: 1; background: none; border: none; color: white;
+            outline: none; font-size: 15px; padding: 5px;
+        }
+        .btn-send { background: var(--accent); border: none; color: white; border-radius: 8px; padding: 8px 12px; font-weight: bold; cursor: pointer; }
+
+        /* RESULTADO */
+        .result-card {
+            background: white; border-radius: 20px; padding: 20px;
+            border-left: 6px solid var(--accent); display: none;
+            position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px;
+        }
+        .result-text { font-size: 20px; font-weight: 700; color: #1a202c; padding-right: 40px; }
+        .copy-btn { position: absolute; top: 15px; right: 15px; font-size: 22px; cursor: pointer; opacity: 0.6; }
+
+        /* HISTORIAL 3 ITEMS */
+        .history-box { margin-top: 15px; }
+        .history-title { font-size: 11px; font-weight: 800; color: #aaa; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .history-item {
+            background: white; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid #eee; cursor: pointer; transition: 0.2s;
+        }
+        .history-item:active { background: #f0f7ff; transform: scale(0.98); }
+        .hist-trans { font-size: 15px; font-weight: 600; color: var(--bg-dark); }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        footer { padding: 20px; font-size: 10px; color: #ccc; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- SPLASH ANIMADO -->
+    <div id="splash">
+        <div class="logo-anim">🗣️</div>
+        <h2 style="letter-spacing: 5px;">ECO NATIVO</h2>
+        <p style="font-size: 10px; opacity: 0.5;">PREPARANDO RUTA...</p>
+    </div>
+
+    <header>
+        <div style="font-size: 12px; font-weight: 800; color: #888; letter-spacing: 1px;">TRADUCTOR PRO</div>
+        <div class="lang-selector">
+            <button class="lang-btn active" onclick="setLang('en', this)" id="btn-en">🇬🇧</button>
+            <button class="lang-btn" onclick="setLang('fr', this)" id="btn-fr">🇫🇷</button>
+            <button class="lang-btn" onclick="setLang('de', this)" id="btn-de">🇩🇪</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="app-card">
+            <div id="transcript">Listo para traducir...</div>
+            <div class="btn-grid">
+                <button class="btn btn-blue" id="recordMe">🎙️ MI VOZ</button>
+                <button class="btn btn-gray" id="recordClient">👤 CLIENTE</button>
+            </div>
+            
+            <!-- MODO ESCRITURA MANUAL -->
+            <div class="input-manual">
+                <input type="text" id="manualInput" placeholder="Escribe aquí (Español)...">
+                <button class="btn-send" onclick="translateManual()">OK</button>
+            </div>
+        </div>
+
+        <div class="result-card" id="resultBox">
+            <span class="copy-btn" onclick="copyText()">📋</span>
+            <div style="font-size: 10px; color: var(--accent); font-weight: 800; margin-bottom: 5px;">TRADUCCIÓN:</div>
+            <div class="result-text" id="translatedText">...</div>
+            <button class="btn btn-blue" style="width: auto; padding: 10px 20px; font-size: 12px; margin-top: 15px;" onclick="window.replay()">🔊 REPETIR VOZ</button>
+        </div>
+
+        <div class="history-box">
+            <div class="history-title">Últimas 3 (Toca para oír)</div>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <footer>MEDBASHA • 2024</footer>
+
+    <script>
+        // REGISTRO SERVICE WORKER (PWA)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(() => { document.getElementById('splash').classList.add('hidden'); }, 1800);
+            renderHistory();
+        });
+
+        let targetLang = 'en';
+        let lastT = ""; let lastL = "";
+        let history = JSON.parse(localStorage.getItem('eco_v5_hist')) || [];
+
+        function setLang(lang, el) {
+            targetLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            if(navigator.vibrate) navigator.vibrate(40);
+        }
+
+        function copyText() {
+            const t = document.getElementById('translatedText').innerText;
+            navigator.clipboard.writeText(t);
+            if(navigator.vibrate) navigator.vibrate(50);
+        }
+
+        // ESCRITURA MANUAL
+        async function translateManual() {
+            const input = document.getElementById('manualInput');
+            const val = input.value.trim();
+            if(!val) return;
+
+            document.getElementById('transcript').innerText = val;
+            const res = await translateApi(val, 'es', targetLang);
+            const audioCode = (targetLang==='en'?'en-US':targetLang==='fr'?'fr-FR':'de-DE');
+            
+            mostrarResultado(res, audioCode, val);
+            input.value = "";
+        }
+
+        async function translateApi(text, from, to) {
+            try {
+                const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
+                const d = await r.json();
+                return d.responseData.translatedText;
+            } catch(e) { return "Error"; }
+        }
+
+        function mostrarResultado(text, lang, original) {
+            document.getElementById('translatedText').innerText = text;
+            document.getElementById('resultBox').style.display = "block";
+            lastT = text; lastL = lang;
+            speak(text, lang);
+            actualizarHistorial(original, text, lang);
+        }
+
+        function actualizarHistorial(orig, trans, lang) {
+            history.unshift({ orig, trans, lang });
+            if(history.length > 3) history.pop();
+            localStorage.setItem('eco_v5_hist', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = history.map((item, i) => `
+                <div class="history-item" onclick="speakHistory(${i})">
+                    <div>
+                        <div style="font-size:9px; color:#aaa">ES: ${item.orig}</div>
+                        <div class="hist-trans">${item.trans}</div>
+                    </div>
+                    <div style="color:var(--accent)">🔊</div>
+                </div>
+            `).join('');
+        }
+
+        function speakHistory(i) {
+            speak(history[i].trans, history[i].lang);
+        }
+
+        function speak(t, l) {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(t);
+            u.lang = l; u.rate = 0.95;
+            window.speechSynthesis.speak(u);
+        }
+
+        // RECONOCIMIENTO DE VOZ
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const rec = new SpeechRecognition();
+
+        function startVoice(speaker) {
+            if(window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+            rec.lang = speaker === 'me' ? 'es-ES' : (targetLang === 'en' ? 'en-US' : targetLang === 'fr' ? 'fr-FR' : 'de-DE');
+            
+            const btn = speaker === 'me' ? document.getElementById('recordMe') : document.getElementById('recordClient');
+            btn.classList.add('recording');
+            
+            rec.start();
+            rec.onresult = async (e) => {
+                const speech = e.results[0][0].transcript;
+                document.getElementById('transcript').innerText = speech;
+                
+                const from = speaker === 'me' ? 'es' : targetLang;
+                const to = speaker === 'me' ? targetLang : 'es';
+                const audioL = (speaker === 'me' ? (targetLang==='en'?'en-US':targetLang==='fr'?'fr-FR':'de-DE') : 'es-ES');
+                
+                const res = await translateApi(speech, from, to);
+                mostrarResultado(res, audioL, speech);
+            };
+            rec.onend = () => btn.classList.remove('recording');
+        }
+
+        window.replay = () => speak(lastT, lastL);
+        document.getElementById('recordMe').onclick = () => startVoice('me');
+        document.getElementById('recordClient').onclick = () => startVoice('client');
+    </script>
+</body>
+</html>
